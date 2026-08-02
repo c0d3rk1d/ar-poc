@@ -1,91 +1,67 @@
 <!DOCTYPE html>
 <html>
-
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-  <script>
-    
-    AFRAME.registerShader('chromakey', {
-  schema: {
-    src: {type: 'map', is: 'uniform'},
-    color: {type: 'color', default: '#00FF00', is: 'uniform'},
-    threshold: {type: 'number', default: 0.3, is: 'uniform'}
-  },
-
-  init: function(data) {
-    // Safely look up the video element target
-    let videoEl = typeof data.src === 'string' ? document.querySelector(data.src) : data.src;
-    let videoTexture = new THREE.VideoTexture(videoEl);
-    videoTexture.minFilter = THREE.LinearFilter;
-    videoTexture.magFilter = THREE.LinearFilter;
-
-    this.material = new THREE.ShaderMaterial({
-      uniforms: {
-        texture1: { value: videoTexture },
-        colorToReplace: { value: new THREE.Color(data.color) },
-        threshold: { value: data.threshold }
-      },
-      vertexShader: `
-        varying vec2 vUv;
-        void main() {
-          vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `
-        uniform sampler2D texture1;
-        uniform vec3 colorToReplace;
-        uniform float threshold;
-        varying vec2 vUv;
-        void main() {
-          vec4 textureColor = texture2D(texture1, vUv);
-          float diff = distance(textureColor.rgb, colorToReplace);
-          if(diff < threshold) {
-            discard;
-          } else {
-            gl_FragColor = textureColor;
-          }
-        }
-      `,
-      transparent: true
-    });
-  },
-
-  // FIXED: data is passed as a parameter here, 'this.data' is undefined in A-Frame shaders
-  update: function(data) {
-    if (!this.material) return;
-    this.material.uniforms.colorToReplace.value.set(data.color);
-    this.material.uniforms.threshold.value = data.threshold;
-  }
-});
-
-    </script>
 </head>
 
 <body>
-  <a-scene mindar-image="imageTargetSrc: ./nothing-changes-if-nothing-changes.mind;" vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: false">
+  <a-scene
+    mindar-image="imageTargetSrc: nothing-changes-if-nothing-changes.mind;"
+    color-space="sRGB"
+    renderer="alpha: true; colorManagement: true; physicallyCorrectLights: true; antialias: true"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false"
+  >
     <a-assets>
-      <!-- Ensure your video is muted, inline, and cross-origin allowed for autoplay -->
-      <video id="greenscreen-video" src="./nothing-changes-if-nothing-changes.mp4" loop="true" autoplay="true"
-        muted="false" playsinline crossorigin="anonymous"></video>
+      <img id="card" src="logo.png" crossorigin="anonymous" />
+
+      <a-asset-item
+        id="avatarModel"
+        src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/softmind/scene.gltf">
+      </a-asset-item>
     </a-assets>
 
-    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <a-camera
+      position="0 0 0"
+      look-controls="enabled: false">
+    </a-camera>
 
-    <!-- MindAR Target Link -->
+    <a-entity mindar-image-target="targetIndex: 0">
 
-    <!-- Apply the custom shader here -->
-    <a-plane position="0 0 0" rotation="0 0 0" width="1" height="0.56"
-      material="shader: chromakey; src: #greenscreen-video; color: 0.0 1.0 0.0; threshold: 0.3">
-    </a-plane>
+      <!-- Transparent PNG -->
+      <a-plane
+        width="1"
+        height="0.552"
+        position="0 0 0"
+        rotation="0 0 0"
+        material="
+          src: #card;
+          transparent: true;
+          alphaTest: 0.01;
+          side: double;
+        ">
+      </a-plane>
 
+      <a-gltf-model
+        src="#avatarModel"
+        position="0 0 0.1"
+        rotation="0 0 0"
+        scale="0.005 0.005 0.005"
+        animation="
+          property: position;
+          to: 0 0.1 0.1;
+          dur: 1000;
+          easing: easeInOutQuad;
+          loop: true;
+          dir: alternate;
+        ">
+      </a-gltf-model>
+
+    </a-entity>
   </a-scene>
-
 </body>
-
 </html>

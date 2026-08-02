@@ -17,7 +17,7 @@
     device-orientation-permission-ui="enabled: false">
 
     <a-assets>
-      <video id="greenVideo" src="nothing-changes-if-nothing-changes.mp4" preload="auto" autoplay muted loop playsinline
+      <video id="greenVideo" src="nothing-changes-if-nothing-changes.mp4" preload="auto" autoplay loop playsinline
         webkit-playsinline crossorigin="anonymous">
       </video>
     </a-assets>
@@ -27,7 +27,7 @@
 
     <a-entity id="target" mindar-image-target="targetIndex:0">
 
-      <a-entity geometry="primitive: plane; width: 1; height: 0.5625" material="
+      <a-entity geometry="primitive: plane; width: 1; height: 1" material="
         shader: chromakey;
         src: #greenVideo;
         color: 0.0 1.0 0.0;

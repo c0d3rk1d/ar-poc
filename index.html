@@ -1,117 +1,83 @@
 <!DOCTYPE html>
 <html>
-
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+  />
 
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-  <script>
-    AFRAME.registerShader("chromakey", {
-      schema: {
-        src: { type: "map" },
-        color: { type: "color", default: "#00ff00" },
-        similarity: { default: 0.35 },
-        smoothness: { default: 0.08 }
-      },
-
-      vertexShader: `
-    varying vec2 vUv;
-
-    void main() {
-      vUv = uv;
-      gl_Position = projectionMatrix *
-                    modelViewMatrix *
-                    vec4(position, 1.0);
-    }
-  `,
-
-      fragmentShader: `
-    uniform sampler2D src;
-    uniform vec3 color;
-    uniform float similarity;
-    uniform float smoothness;
-
-    varying vec2 vUv;
-
-    void main() {
-
-      vec4 pixel = texture2D(src, vUv);
-
-      float Y1 = 0.299 * color.r +
-                 0.587 * color.g +
-                 0.114 * color.b;
-
-      float Cr1 = color.r - Y1;
-      float Cb1 = color.b - Y1;
-
-      float Y2 = 0.299 * pixel.r +
-                 0.587 * pixel.g +
-                 0.114 * pixel.b;
-
-      float Cr2 = pixel.r - Y2;
-      float Cb2 = pixel.b - Y2;
-
-      float blend = smoothstep(
-          similarity,
-          similarity + smoothness,
-          distance(vec2(Cr1, Cb1), vec2(Cr2, Cb2))
-      );
-
-      gl_FragColor = vec4(pixel.rgb, pixel.a * blend);
-    }
-  `
-    });
-  </script>
 </head>
 
 <body>
-  <a-scene mindar-image="imageTargetSrc: nothing-changes-if-nothing-changes.mind;" color-space="sRGB"
-    renderer="alpha: true; colorManagement: true; physicallyCorrectLights: true; antialias: true"
-    vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
 
-    <a-assets>
-      <video id="greenVideo" src="nothing-changes-if-nothing-changes.mp4" preload="auto" loop playsinline
-        webkit-playsinline crossorigin="anonymous">
-      </video>
-    </a-assets>
+<a-scene
+  mindar-image="imageTargetSrc: nothing-changes-if-nothing-changes.mind;"
+  color-space="sRGB"
+  renderer="colorManagement: true; physicallyCorrectLights: true"
+  vr-mode-ui="enabled: false"
+  device-orientation-permission-ui="enabled: false"
+>
 
-    <a-camera position="0 0 0" look-controls="enabled: false">
-    </a-camera>
+  <a-assets>
+    <video
+      id="greenVideo"
+      src="nothing-changes-if-nothing-changes.mp4"
+      preload="auto"
+      autoplay
+      muted
+      loop
+      playsinline
+      webkit-playsinline
+      crossorigin="anonymous">
+    </video>
+  </a-assets>
 
-    <a-entity mindar-image-target="targetIndex: 0">
+  <a-camera
+    position="0 0 0"
+    look-controls="enabled:false">
+  </a-camera>
 
-      <a-plane width="1" height="0.5625" position="0 0 0" shader="chromakey" material="
-      shader: chromakey;
-      src: #greenVideo;
-      color: #00ff00;
-      similarity: 0.32;
-      smoothness: 0.10;
-      transparent: true;
-      side: double;">
-      </a-plane>
+  <a-entity id="target" mindar-image-target="targetIndex:0">
 
+    <!-- Test video -->
+    <a-video
+      id="videoPlane"
+      src="#greenVideo"
+      width="1"
+      height="0.5625"
+      position="0 0 0"
+      material="side:double">
+    </a-video>
 
-    </a-entity>
-  </a-scene>
-  <script>
-    const video = document.querySelector("#greenVideo");
-    const target = document.querySelector("[mindar-image-target]");
+  </a-entity>
 
-    target.addEventListener("targetFound", async () => {
-      try {
+</a-scene>
+
+<script>
+
+const video = document.querySelector("#greenVideo");
+const target = document.querySelector("#target");
+
+target.addEventListener("targetFound", async () => {
+    console.log("FOUND");
+
+    try {
         video.currentTime = 0;
         await video.play();
-      } catch (e) {
-        console.log(e);
-      }
-    });
+    } catch(e){
+        console.error(e);
+    }
+});
 
-    target.addEventListener("targetLost", () => {
-      video.pause();
-    });
-  </script>
+target.addEventListener("targetLost", () => {
+    console.log("LOST");
+    video.pause();
+});
+
+</script>
+
 </body>
-
 </html>

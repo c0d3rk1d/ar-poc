@@ -7,6 +7,57 @@
 
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <script>
+    AFRAME.registerShader('chromakey', {
+      schema: {
+        src: { type: 'map' },
+        color: { type: 'color', default: '#00FF00' },
+        threshold: { type: 'number', default: 0.3 }
+      },
+      init: function (data) {
+        // Ensure the asset is ready or wrap texture assignment
+        let videoEl = typeof data.src === 'string' ? document.querySelector(data.src) : data.src;
+        let videoTexture = new THREE.VideoTexture(videoEl);
+        videoTexture.minFilter = THREE.LinearFilter;
+        videoTexture.magFilter = THREE.LinearFilter;
+
+        this.material = new THREE.ShaderMaterial({
+          uniforms: {
+            texture1: { value: videoTexture },
+            colorToReplace: { value: new THREE.Color(data.color) },
+            threshold: { value: data.threshold }
+          },
+          vertexShader: `
+            varying vec2 vUv;
+            void main() {
+              vUv = uv;
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+          `,
+          fragmentShader: `
+            uniform sampler2D texture1;
+            uniform vec3 colorToReplace;
+            uniform float threshold;
+            varying vec2 vUv;
+            void main() {
+              vec4 textureColor = texture2D(texture1, vUv);
+              float diff = distance(textureColor.rgb, colorToReplace);
+              if(diff < threshold) {
+                discard;
+              } else {
+                gl_FragColor = textureColor;
+              }
+            }
+          `,
+          transparent: true
+        });
+      },
+      update: function () {
+        this.material.uniforms.colorToReplace.value.set(this.data.color);
+        this.material.uniforms.threshold.value = this.data.threshold;
+      }
+    });
+  </script>
 </head>
 
 <body>
@@ -14,7 +65,8 @@
     device-orientation-permission-ui="enabled: false">
     <a-assets>
       <!-- Ensure your video is muted, inline, and cross-origin allowed for autoplay -->
-      <video id="greenscreen-video" src="./nothing-changes-if-nothing-changes.mp4" loop="true" autoplay="true" muted="false" playsinline crossorigin="anonymous"></video>
+      <video id="greenscreen-video" src="./nothing-changes-if-nothing-changes.mp4" loop="true" autoplay="true"
+        muted="false" playsinline crossorigin="anonymous"></video>
     </a-assets>
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>

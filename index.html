@@ -1,83 +1,67 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="utf-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
-  />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
 
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <script src="https://unpkg.com/aframe-chromakey-material/dist/aframe-chromakey-material.min.js"></script>
 </head>
 
 <body>
 
-<a-scene
-  mindar-image="imageTargetSrc: nothing-changes-if-nothing-changes.mind;"
-  color-space="sRGB"
-  renderer="colorManagement: true; physicallyCorrectLights: true"
-  vr-mode-ui="enabled: false"
-  device-orientation-permission-ui="enabled: false"
->
+  <a-scene mindar-image="imageTargetSrc: nothing-changes-if-nothing-changes.mind;" color-space="sRGB"
+    renderer="colorManagement: true; physicallyCorrectLights: true" vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false">
 
-  <a-assets>
-    <video
-      id="greenVideo"
-      src="nothing-changes-if-nothing-changes.mp4"
-      preload="auto"
-      autoplay
-      muted
-      loop
-      playsinline
-      webkit-playsinline
-      crossorigin="anonymous">
-    </video>
-  </a-assets>
+    <a-assets>
+      <video id="greenVideo" src="nothing-changes-if-nothing-changes.mp4" preload="auto" autoplay muted loop playsinline
+        webkit-playsinline crossorigin="anonymous">
+      </video>
+    </a-assets>
 
-  <a-camera
-    position="0 0 0"
-    look-controls="enabled:false">
-  </a-camera>
+    <a-camera position="0 0 0" look-controls="enabled:false">
+    </a-camera>
 
-  <a-entity id="target" mindar-image-target="targetIndex:0">
+    <a-entity id="target" mindar-image-target="targetIndex:0">
 
-    <!-- Test video -->
-    <a-video
-      id="videoPlane"
-      src="#greenVideo"
-      width="1"
-      height="0.5625"
-      position="0 0 0"
-      material="side:double">
-    </a-video>
+      <a-entity geometry="primitive: plane; width: 1; height: 0.5625" material="
+        shader: chromakey;
+        src: #greenVideo;
+        color: 0.0 1.0 0.0;
+        transparent: true;
+        side: double">
+      </a-entity>
 
-  </a-entity>
+    </a-entity>
 
-</a-scene>
+  </a-scene>
 
-<script>
+  <script>
 
-const video = document.querySelector("#greenVideo");
-const target = document.querySelector("#target");
+    const video = document.querySelector("#greenVideo");
+    const target = document.querySelector("#target");
 
-target.addEventListener("targetFound", async () => {
-    console.log("FOUND");
+    target.addEventListener("targetFound", async () => {
+      console.log("FOUND");
 
-    try {
+      try {
         video.currentTime = 0;
         await video.play();
-    } catch(e){
+      } catch (e) {
         console.error(e);
-    }
-});
+      }
+    });
 
-target.addEventListener("targetLost", () => {
-    console.log("LOST");
-    video.pause();
-});
+    target.addEventListener("targetLost", () => {
+      console.log("LOST");
+      video.pause();
+    });
 
-</script>
+  </script>
 
 </body>
+
 </html>

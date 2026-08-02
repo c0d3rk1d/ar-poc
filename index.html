@@ -30,13 +30,11 @@
 
     #welcome h1 {
       font-size: 32px;
-      margin-bottom: 20px;
     }
 
     #welcome p {
       font-size: 18px;
       line-height: 1.5;
-      max-width: 500px;
     }
 
     #startAR {
@@ -45,8 +43,6 @@
       font-size: 20px;
       border-radius: 12px;
       border: none;
-      background: white;
-      color: black;
     }
 
     #soundButton {
@@ -59,8 +55,6 @@
       font-size: 18px;
       border-radius: 12px;
       border: none;
-      background: white;
-      color: black;
     }
   </style>
 </head>
@@ -69,9 +63,9 @@
   <div id="welcome">
     <h1>Welcome</h1>
     <p>
-      Experience this augmented reality animation.<br><br>
-      Tap Start AR, allow camera access,<br>
-      then point your camera at the image target.
+      Experience this AR animation.<br><br>
+      Tap Start AR and point your camera<br>
+      at the image target.
     </p>
     <button id="startAR">
       Start AR
@@ -79,12 +73,11 @@
   </div>
   <a-scene mindar-image="
     imageTargetSrc: nothing-changes-if-nothing-changes.mind;
-    autoStart: false;
   " color-space="sRGB" renderer="
     colorManagement: true;
     physicallyCorrectLights: true;
     antialias: true;
-  " vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+  " vr-mode-ui="enabled:false" device-orientation-permission-ui="enabled:false">
     <a-assets>
       <video id="greenVideo" src="nothing-changes-if-nothing-changes.mp4" preload="auto" loop playsinline
         webkit-playsinline crossorigin="anonymous">
@@ -94,74 +87,78 @@
     </a-camera>
     <a-entity id="target" mindar-image-target="targetIndex:0">
       <a-entity geometry="
-        primitive: plane;
-        width: 1.05;
-        height: 1.05;
-      " material="
-        shader: chromakey;
-        src: #greenVideo;
-        color: 0 1 0;
-        transparent: true;
-        side: double;
-      ">
+      primitive: plane;
+      width:1;
+      height:1;
+    " material="
+      shader:chromakey;
+      src:#greenVideo;
+      color:0 1 0;
+      transparent:true;
+      side:double;
+    ">
       </a-entity>
     </a-entity>
   </a-scene>
   <script>
-    const scene = document.querySelector("a-scene");
-    const mindarSystem = scene.systems["mindar-image-system"];
-    const startButton = document.querySelector("#startAR");
     const welcome = document.querySelector("#welcome");
+    const startButton = document.querySelector("#startAR");
     const video = document.querySelector("#greenVideo");
     const target = document.querySelector("#target");
-    // Start AR after user gesture
+    // User enters AR
     startButton.addEventListener("click", async () => {
       welcome.style.display = "none";
-      try {
-        await mindarSystem.start();
-      } catch (e) {
-        console.error("MindAR start failed:", e);
-      }
-    });
-    // Target detected
-    target.addEventListener("targetFound", async () => {
-      console.log("Target found");
-      video.currentTime = 0;
+      // Unlock audio on iOS Safari
       try {
         video.muted = false;
-        video.volume = 0.05;
+        video.volume = 1;
         await video.play();
-      } catch (e) {
-        console.log("Browser blocked audio");
+        video.pause();
+        video.currentTime = 0;
+      }
+      catch (e) {
+        console.log("Audio unlock waiting");
+      }
+    });
+    // Image found
+    target.addEventListener("targetFound", async () => {
+      console.log("Target found");
+      try {
+        video.currentTime = 0;
+        video.muted = false;
+        video.volume = 1;
+        await video.play();
+      }
+      catch (e) {
+        console.log("Sound blocked");
         video.muted = true;
         await video.play();
         showSoundButton();
       }
     });
-    // Target lost
+    // Image lost
     target.addEventListener("targetLost", () => {
       console.log("Target lost");
       video.pause();
     });
-    // iOS Safari audio unlock
     function showSoundButton() {
-      if (document.querySelector("#soundButton")) {
+      if (document.querySelector("#soundButton"))
         return;
-      }
       const button = document.createElement("button");
       button.id = "soundButton";
       button.innerHTML = "🔊 Enable Sound";
       document.body.appendChild(button);
-      button.addEventListener("click", async () => {
+      button.onclick = async () => {
         try {
           video.muted = false;
           video.volume = 1;
           await video.play();
           button.remove();
-        } catch (e) {
+        }
+        catch (e) {
           console.error(e);
         }
-      });
+      };
     }
   </script>
 </body>

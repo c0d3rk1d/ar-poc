@@ -17,7 +17,7 @@
     device-orientation-permission-ui="enabled: false">
 
     <a-assets>
-      <video id="greenVideo" src="nothing-changes-if-nothing-changes.mp4" preload="auto" autoplay loop playsinline
+      <video id="greenVideo" src="nothing-changes-if-nothing-changes.mp4" preload="auto" autoplay="false" muted loop playsinline
         webkit-playsinline crossorigin="anonymous">
       </video>
     </a-assets>
@@ -45,18 +45,16 @@
     const target = document.querySelector("#target");
 
     target.addEventListener("targetFound", async () => {
-      console.log("FOUND");
-
       try {
         video.currentTime = 0;
         await video.play();
+        video.volume = .5;
       } catch (e) {
         console.error(e);
       }
     });
 
     target.addEventListener("targetLost", () => {
-      console.log("LOST");
       video.pause();
     });
 
